@@ -35,8 +35,8 @@ function bundle.new(currentPath)
 		return readfile(filePath)
 	end
 	
-	function bundler.createChunk(sourceCode, folderPath)
-		local chunk, err = loadstring(sourceCode, folderPath)
+	function bundler.createChunk(sourceCode, folderPath, debugPath)
+		local chunk, err = loadstring(sourceCode, `={debugPath}`)
 		
 		if not chunk then
 			return false, err
@@ -118,7 +118,7 @@ function bundle.new(currentPath)
 		end
 		
 		-- Create and execute chunk
-		local success, result = bundler.createChunk(source, folderPath)
+		local success, result = bundler.createChunk(source, folderPath, path)
 		if not success then
 			error(`={filePath}:\n{result}`, 2)
 		end
