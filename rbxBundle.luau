@@ -96,7 +96,9 @@ function bundle.new(currentPath)
 		
 		local attemps = {
 			fullPath .. ".lua",
-			fullPath .. ".luau"
+			fullPath .. ".luau",
+			fullPath .. "/init.lua",
+			fullPath .. "/init.luau"
 		}
 		
 		local source, folderPath, filePath = nil, nil, nil
