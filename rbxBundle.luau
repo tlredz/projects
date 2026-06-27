@@ -18,13 +18,14 @@ function bundle.new(currentPath)
 		currentPath = currentPath:sub(1, -2)
 	end
 	
+	local thisRequiredModules = {}
+	
 	local bundler = {
 		currentPath = currentPath,
 		owner = owner,
 		repository = repository
 	}
 	
-	-- Helper to read file from filesystem (Roblox Studio plugin environment)
 	function bundler.readFile(filePath)
 		if type(readfile) ~= "function" or type(isfile) ~= "function" then
 			return nil, "readfile/isfile not available"
@@ -58,7 +59,6 @@ function bundle.new(currentPath)
 		return pcall(chunk)
 	end
 	
-	-- Convert a filesystem path to a GitHub-style path (for display/storage)
 	function bundler.getPath(path)
 		if path:sub(1, 1) ~= "/" then
 			path = "/" .. path
@@ -68,7 +68,6 @@ function bundle.new(currentPath)
 		return bundler.normalizePath(path)
 	end
 	
-	-- Resolve a relative path against the current base path
 	function bundler.normalizePath(path)
 		local split = path:split("/")
 		local fileName = table.remove(split)
@@ -85,14 +84,16 @@ function bundle.new(currentPath)
 		return table.concat(parts, "/"), fileName
 	end
 	
-	-- Main require function
 	function bundler.require(path)
 		if type(path) ~= "string" then
-			-- error(`invalid argument #1 to 'require' (string expected, got {typeof(path)})`, 2)
 			return ORIGINAL_REQUIRE(path)
 		end
 		
 		local fullPath = path:lower()
+		
+		if thisRequiredModules[path] then
+			return modulesGarbage[filePath]
+		end	
 		
 		local attemps = {
 			fullPath .. ".lua",
@@ -119,15 +120,14 @@ function bundle.new(currentPath)
 			error(`could not soulve module path: '{fullPath}'`)
 		end
 		
-		-- Create and execute chunk
 		local success, result = bundler.createChunk(source, folderPath, path)
 		if not success then
-			error(`={filePath}:\n{result}`, 2)
+			error(`\n={filePath}:{result}`, 2)
 		end
 		
-		-- Cache and return
 		requiredModules[filePath] = true
 		modulesGarbage[filePath] = result
+		thisRequiredModules[fullPath] = true
 		
 		return result
 	end
